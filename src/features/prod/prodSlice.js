@@ -2,27 +2,37 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import prodService from "./prodService";
 
 const initialState = {
-    products: []
+    allProducts: [], // Todos los productos
+    prod: [],        // Productos de la página actual
+    currentPage: 1,
+    itemsPerPage: 10, // Productos por página
 };
 
-export const getAll = createAsyncThunk("products/getAll", async () => {
-    try {
-        return await prodService.getAll();
-    } catch (error) {
-        console.error(error);
-    }
+export const fetchProducts = createAsyncThunk("products/fetchAll", async () => {
+    return await prodService.getAll();
 });
 
 export const prodSlice = createSlice({
     name: "products",
     initialState,
-    reducers: {},
+    reducers: {
+        setPage(state, action) {
+            const { page } = action.payload;
+            state.currentPage = page;
+            const startIndex = (page - 1) * state.itemsPerPage;
+            const endIndex = startIndex + state.itemsPerPage;
+            state.prod = state.allProducts.slice(startIndex, endIndex);
+        },
+    },
     extraReducers: (builder) => {
-        builder.addCase(getAll.fulfilled, (state, action) => {
-            state.prod = action.payload;
+        builder.addCase(fetchProducts.fulfilled, (state, action) => {
+            state.allProducts = action.payload;
+            const startIndex = 0;
+            const endIndex = state.itemsPerPage;
+            state.prod = action.payload.slice(startIndex, endIndex);
         });
-    }
-})
+    },
+});
 
-export const { reset } = prodSlice.actions
-export default prodSlice.reducer
+export const { setPage } = prodSlice.actions;
+export default prodSlice.reducer;

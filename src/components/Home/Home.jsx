@@ -1,49 +1,62 @@
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { getAll } from "../../features/prod/prodSlice";
-
+import { fetchProducts, setPage } from "../../features/prod/prodSlice";
 
 const Home = () => {
-    const { prod } = useSelector((state) => state.prod);
-    const dispatch = useDispatch()
+    const dispatch = useDispatch();
+    const { prod, currentPage } = useSelector((state) => state.prod);
 
     useEffect(() => {
-        dispatch(getAll());
-    }, []);
+        dispatch(fetchProducts()); // Carga todos los productos al inicio
+    }, [dispatch]);
 
-    console.log(prod);
+    const handleNext = () => {
+        dispatch(setPage({ page: currentPage + 1 }));
+    };
+
+    const handlePrev = () => {
+        if (currentPage > 1) {
+            dispatch(setPage({ page: currentPage - 1 }));
+        }
+    };
 
     return (
         <>
-        <div>
-            <table>
-                <tr>
-                    <th>Title</th>
-                    <th>Price</th>
-                    <th>Categories</th>
-                </tr>
-                {prod.map((product) => {
-                    return (
-                        <>
+            <div>
+                <table>
+                    <thead>
                         <tr>
-                            <td>{product.title}</td>
-                            <td>{product.price}</td>
-                            <td>{product.category}</td>
+                            <th>Title</th>
+                            <th>Price</th>
+                            <th>Categories</th>
                         </tr>
-                        </>
-                    )
-                })}
-                <tr>
-                </tr>
-            </table>
-        </div>
-        <div>
-            <button>Next</button>
-            <button>Prev</button>
-        </div>
-
+                    </thead>
+                    <tbody>
+                        {prod.map((product) => (
+                            <>
+                            <tr key={product.id}>
+                                <td>{product.title}</td>
+                                <td>{product.price}</td>
+                                <td>{product.category}</td>
+                            </tr>
+                            </>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <button onClick={handlePrev} disabled={currentPage === 1}>
+                    Prev
+                </button>
+                <button
+                    onClick={handleNext}
+                    disabled={prod.length < 10} // Deshabilita si no hay más productos
+                >
+                    Next
+                </button>
+            </div>
         </>
-    )
-}
+    );
+};
 
-export default Home
+export default Home;
